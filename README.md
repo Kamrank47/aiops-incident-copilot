@@ -11,7 +11,7 @@ flowchart LR
   API --> R[Runbooks]
   API -->|redacted prompt| LLM[GPT-OSS 120B on Groq]
   API --> S[Slack]
-  API --> M[/metrics]
+  API --> M["/metrics"]
 ```
 
 ## Design decisions

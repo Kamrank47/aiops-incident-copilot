@@ -25,7 +25,43 @@ RESPONSE_SCHEMA = {
 
 
 async def call_llm(prompt: str, s: Settings) -> Triage:
-    """Ask Gemini for a structured triage. Raises on any failure."""
+    """Ask the configured provider for a structured triage. Raises on any failure."""
+    if s.llm_provider == "groq":
+        return await _call_groq(prompt, s)
+    return await _call_gemini(prompt, s)
+
+
+JSON_INSTRUCTION = (
+    ' Reply with a single JSON object with keys "summary" (string), '
+    '"likely_cause" (string), "confidence" ("low", "medium" or "high") and '
+    '"next_steps" (array of strings).'
+)
+
+
+async def _call_groq(prompt: str, s: Settings) -> Triage:
+    body = {
+        "model": s.groq_model,
+        "temperature": 0.1,
+        "max_tokens": 1500,
+        "reasoning_effort": "low",
+        "response_format": {"type": "json_object"},
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT + JSON_INSTRUCTION},
+            {"role": "user", "content": prompt},
+        ],
+    }
+    async with httpx.AsyncClient(timeout=s.llm_timeout_s) as client:
+        r = await client.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            json=body,
+            headers={"Authorization": f"Bearer {s.groq_api_key}"},
+        )
+        r.raise_for_status()
+    text = r.json()["choices"][0]["message"]["content"]
+    return Triage(**json.loads(text), source="llm")
+
+
+async def _call_gemini(prompt: str, s: Settings) -> Triage:
     url = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
         f"{s.gemini_model}:generateContent"

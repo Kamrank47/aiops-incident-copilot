@@ -1,0 +1,32 @@
+[
+  {
+    "id": "deploy-regression",
+    "alert": {"labels": {"alertname": "HighErrorRate", "service": "checkout"}, "annotations": {"summary": "5xx rate above 0.5/s"}},
+    "context": {"metrics": {"error_rate_5m": "3.2", "p95_latency_s": "0.4", "restarts_1h": "0"}, "log_lines": ["NullPointerException in PaymentMapper.map after release v2.14.0"], "recent_deploys": ["checkout v2.14.0 deployed 6 minutes ago"]},
+    "expected_keywords": ["deploy", "roll"]
+  },
+  {
+    "id": "memory-leak-oom",
+    "alert": {"labels": {"alertname": "PodCrashLooping", "service": "orders"}, "annotations": {"summary": "Container restarting repeatedly"}},
+    "context": {"metrics": {"memory_bytes": "536870000", "restarts_1h": "7"}, "log_lines": ["Last state: OOMKilled, exit code 137"], "recent_deploys": []},
+    "expected_keywords": ["memory", "oom"]
+  },
+  {
+    "id": "db-connection-exhaustion",
+    "alert": {"labels": {"alertname": "HighLatencyP95", "service": "catalog"}, "annotations": {"summary": "p95 latency above 1s"}},
+    "context": {"metrics": {"p95_latency_s": "4.8", "error_rate_5m": "0.1"}, "log_lines": ["timeout acquiring connection from pool (max=20)", "timeout acquiring connection from pool (max=20)"], "recent_deploys": []},
+    "expected_keywords": ["connection", "pool"]
+  },
+  {
+    "id": "upstream-dependency",
+    "alert": {"labels": {"alertname": "HighErrorRate", "service": "gateway"}, "annotations": {"summary": "5xx rate above 0.5/s"}},
+    "context": {"metrics": {"error_rate_5m": "1.9", "restarts_1h": "0"}, "log_lines": ["upstream auth-service: connect timeout after 5s", "502 from auth-service"], "recent_deploys": []},
+    "expected_keywords": ["upstream", "auth"]
+  },
+  {
+    "id": "probe-misconfig",
+    "alert": {"labels": {"alertname": "PodCrashLooping", "service": "reports"}, "annotations": {"summary": "Container restarting repeatedly"}},
+    "context": {"metrics": {"restarts_1h": "9", "memory_bytes": "120000000"}, "log_lines": ["Liveness probe failed: HTTP probe failed with statuscode: 503", "app started in 48s"], "recent_deploys": ["reports config change 20 minutes ago"]},
+    "expected_keywords": ["probe", "startup"]
+  }
+]

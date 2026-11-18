@@ -1,0 +1,11 @@
+route:
+  receiver: triage
+  group_by: [alertname, service]
+  group_wait: 30s
+  repeat_interval: 4h
+
+receivers:
+  - name: triage
+    webhook_configs:
+      - url: http://triage:8000/webhook
+        send_resolved: false
